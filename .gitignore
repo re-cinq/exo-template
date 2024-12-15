@@ -1,0 +1,11 @@
+image.qcow2
+image.raw
+image.initrd
+image.vmlinuz
+image.efi
+image.SHA256SUMS
+image
+mkosi.key
+mkosi.crt
+debian-tools/
+tmp/

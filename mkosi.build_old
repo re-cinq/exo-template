@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+# From http://0pointer.net/blog/mkosi-a-tool-for-generating-os-images.html:
+# mkosi.postinst ?~@~T If this executable script exists, it is invoked inside the
+# image (inside a systemd-nspawn invocation) and can adjust the image as it
+# likes at a very late point in the image preparation. If mkosi.build exists,
+# i.e. the dual-phased development build process used, then this script will be
+# invoked twice: once inside the build image and once inside the final image.
+# The first parameter passed to the script clarifies which phase it is run in.
+
+# don't ask me any questions, apt
+#
+
+
+
+export DEBIAN_FRONTEND=noninteractive
+
+mkdir -p $DESTDIR/opt
+mkdir -p $DESTDIR/etc/apt/keyrings/
+
+curl -fsSL https://download.docker.com/linux/debian/gpg -o $DESTDIR/etc/apt/keyrings/docker.asc
+
+curl -fsSL https://us.download.nvidia.com/tesla/560.35.03/nvidia-driver-local-repo-debian12-560.35.03_1.0-1_amd64.deb -o $DESTDIR/opt/
+
+ls -la  $DESTDIR/opt

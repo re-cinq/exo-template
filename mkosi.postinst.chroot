@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+
+# From http://0pointer.net/blog/mkosi-a-tool-for-generating-os-images.html:
+# mkosi.postinst — If this executable script exists, it is invoked inside the
+# image (inside a systemd-nspawn invocation) and can adjust the image as it
+# likes at a very late point in the image preparation. If mkosi.build exists,
+# i.e. the dual-phased development build process used, then this script will be
+# invoked twice: once inside the build image and once inside the final image.
+# The first parameter passed to the script clarifies which phase it is run in.
+
+# don't ask me any questions, apt
+export DEBIAN_FRONTEND=noninteractive
+
+# ---------------------------- install updates ---------------------------------
+echo -e "\n\nInstalling updates...\n"
+
+# add package repository for updates to sources list
+# add-apt-repository "deb http://archive.ubuntu.com/ubuntu focal-updates main universe"
+
+# update package lists
+apt-get -y update
+
+# install updates
+apt-get -y upgrade
+
+
+# ----------------------------- install Docker ---------------------------------
+# from https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
+echo -e "\n\nInstalling Docker...\n"
+
+# get the docker GPG key
+# Add Docker's official GPG key:
+install -m 0755 -d /etc/apt/keyrings
+#curl -fsSL https://download.docker.com/linux/debian/gpg -o $DESTDIR/etc/apt/keyrings/docker.asc
+#chmod a+r /etc/apt/keyrings/docker.asc
+
+# Add the repository to Apt sources:
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/debian \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# update package lists and install docker
+apt-get -y update
+apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+# ---------------------------- install nvidia drivers --------------------------
+#
+echo -e "\n\nInstalling Nvidia Drivers...\n"
+
+wget https://us.download.nvidia.com/tesla/560.35.03/nvidia-driver-local-repo-debian12-560.35.03_1.0-1_amd64.deb
+
+# curl -fsSL https://us.download.nvidia.com/tesla/560.35.03/nvidia-driver-local-repo-debian12-560.35.03_1.0-1_amd64.deb -o $DESTDIR/opt/
+
+dpkg -i nvidia-driver-local-repo-debian12-560.35.03_1.0-1_amd64.deb
+
+rm nvidia-driver-local-repo-debian12-560.35.03_1.0-1_amd64.deb
+
+# cp /var/nvidia-driver-local-repo-debian12-560.35.03/nvidia-driver-local-8192D793-keyring.gpg /usr/share/keyrings/
+
+apt -y update
+
+apt install -y cuda-drivers
+
+# ---------------------------- install CUDA --------------------------
+echo -e "\n\nInstalling Nvidia CUDA...\n"
+
+wget https://developer.download.nvidia.com/compute/cuda/12.6.3/local_installers/cuda-repo-debian12-12-6-local_12.6.3-560.35.05-1_amd64.deb
+
+dpkg -i cuda-repo-debian12-12-6-local_12.6.3-560.35.05-1_amd64.deb
+
+apt -y update
+
+apt-get -y install cuda-toolkit-12-6
+
+rm cuda-repo-debian12-12-6-local_12.6.3-560.35.05-1_amd64.deb
+
+# ---------------------------- install Nvidia Containers Lib --------------------------
+echo -e "\n\nInstalling Nvidia container toolkit...\n"
+
+curl -s -L https://nvidia.github.io/libnvidia-container/stable/deb/nvidia-container-toolkit.list | \
+    sed 's#deb https://#deb [signed-by=/usr/share/keyrings/nvidia-container-toolkit-keyring.gpg] https://#g' | \
+    tee /etc/apt/sources.list.d/nvidia-container-toolkit.list
+
+apt -y update
+
+apt-get install -y nvidia-container-toolkit
+
+# Enable GPU support for docker
+nvidia-ctk runtime configure --runtime=docker
+
+# Enable GPU support for containerd
+nvidia-ctk runtime configure --runtime=containerd
+
+# ---------------------------- install k3s ------------------------------------
+curl -sfL https://get.k3s.io | sh -
+
+# ---------------------------- clean up ----------------------------------------
+apt-get autoremove --purge
