@@ -30,7 +30,7 @@ upload_permissions:
 register:
 	exo compute instance-template register ai-jobs $(shell exo storage show ${ORG}-${ZONE}/image.qcow2 --output-format json | jq '.url') $(shell md5sum image.qcow2 | awk '{print $$1}') --boot-mode uefi --disable-password --username debian --zone ${ZONE} --description \"nvidia debian template ${ZONE}\"
 
-os_template: clean build convert upload upload_permissions register
+os_template: build convert upload upload_permissions register
 
 init:
 	mkosi genkey
