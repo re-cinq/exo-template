@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: finetuning
+  labels:
+    app: ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ai
+  template:
+    metadata:
+      labels:
+        app: ai
+    spec:
+      runtimeClassName: nvidia
+      containers:
+      - name: ai
+        image: silentehrec/torchtune:latest
+        command:
+          - tune
+          - "run"
+          - "full_finetune_single_device"
+          - "--config"
+          - "qwen2_5/0.5B_full_single_device"
+        volumeMounts:
+          - name: models-storage
+            mountPath: /tmp
+        env:
+          - name: HF_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: hf-token 
+                key: hf-token
+      initContainers:
+      - name: ai-init
+        image: silentehrec/torchtune:latest
+        command:
+          - tune
+          - download
+          - "Qwen/Qwen2.5-0.5B-Instruct"
+        volumeMounts:
+          - name: models-storage
+            mountPath: /tmp
+        env:
+          - name: HF_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: hf-token
+                key: hf-token
+
+      volumes:
+        - name: models-storage
+          persistentVolumeClaim:
+            claimName: models
