@@ -1,41 +1,43 @@
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
   name: finetuning
   labels:
     app: ai
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: ai
   template:
     metadata:
       labels:
         app: ai
     spec:
+      restartPolicy: OnFailure
       runtimeClassName: nvidia
       containers:
       - name: ai
         image: silentehrec/torchtune:latest
+        tty: true
         command:
           - tune
           - "run"
           - "full_finetune_single_device"
+          - "-r=3"
           - "--config"
           - "qwen2_5/0.5B_full_single_device"
         volumeMounts:
           - name: models-storage
             mountPath: /tmp
         env:
+          - name: PYTHONUNBUFFERED
+            value: "1"
           - name: HF_TOKEN
             valueFrom:
               secretKeyRef:
-                name: hf-token 
+                name: hf-token
                 key: hf-token
       initContainers:
       - name: ai-init
         image: silentehrec/torchtune:latest
+        tty: true
         command:
           - tune
           - download
@@ -44,12 +46,13 @@ spec:
           - name: models-storage
             mountPath: /tmp
         env:
+          - name: PYTHONUNBUFFERED
+            value: "1"
           - name: HF_TOKEN
             valueFrom:
               secretKeyRef:
                 name: hf-token
                 key: hf-token
-
       volumes:
         - name: models-storage
           persistentVolumeClaim:
