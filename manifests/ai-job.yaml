@@ -1,0 +1,20 @@
+apiVersion: ai.re-cinq.com/v1
+kind: Job
+metadata:
+  labels:
+    app.kubernetes.io/name: ai-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: job-sample
+spec:
+
+  # The name of the container image to use
+  # image: silentehrec/torchtune:latest
+
+  # The name of the model to download
+  # model: "Qwen/Qwen2.5-0.5B-Instruct"
+
+  # The size of the disk to use for the container in GB
+  # diskSize: 50
+
+  # HuggingFace secret for downloading the model
+  huggingFaceSecret: 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

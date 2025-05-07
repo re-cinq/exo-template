@@ -28,7 +28,7 @@ upload_permissions:
 	exo storage setacl -r sos://${ORG}-${ZONE}/image.qcow2 public-read
 
 register:
-	exo compute instance-template register ai-jobs $(shell exo storage show ${ORG}-${ZONE}/image.qcow2 --output-format json | jq '.url') $(shell md5sum image.qcow2 | awk '{print $$1}') --boot-mode uefi --disable-password --username debian --zone ${ZONE} --description \"nvidia debian template ${ZONE}\"
+	exo compute instance-template register --description 'Linux Debian 12 (Bookworm) 64-bit GPU' linux-debian-12-gpu $(shell exo storage show ${ORG}-${ZONE}/image.qcow2 --output-format json | jq '.url') $(shell md5sum image.qcow2 | awk '{print $$1}') --boot-mode uefi --disable-password --username debian --zone ${ZONE} --description \"nvidia debian template ${ZONE}\"
 
 os_template: build convert upload upload_permissions register
 

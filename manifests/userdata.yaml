@@ -1,0 +1,13 @@
+#cloud-config
+write_files:
+  - path: /var/lib/rancher/k3s/server/manifests/ai-job.yaml
+    content: |
+      apiVersion: ai.re-cinq.com/v1
+      kind: Job
+      metadata:
+        name: ai-job
+      spec:
+        # HuggingFace secret for downloading the model
+        huggingFaceSecret: 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
+    owner: 'root:root'
+    permissions: '0644'
