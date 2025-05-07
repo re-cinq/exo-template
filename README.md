@@ -1,58 +1,124 @@
-# Steps
-1. Setup `exo config` CLI
-2. `make os_template`
-3. `make build`
-4. `ssh debian@IP`
-5. `sudo su`
-6. `nvidia smi`
-7. `grep nvidia /var/lib/rancher/k3s/agent/etc/containerd/config.toml`
-8. `docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi`
+### Exoscale GPU-Enabled Template Builder
+This repository contains tools and configurations to create a custom Debian-based VM template for Exoscale with NVIDIA GPU support, CUDA, and Kubernetes (k3s) pre-installed.
 
+#### Overview
+The project uses mkosi to build a custom Debian Bookworm image with:
 
-This is an extension of the exocli Command Line Interface (CLI) tool. This extension is designed to help users effectively leverage GPU resources for AI model training. It simplifies the use of the existing GPU resources for short running jobs.
+- NVIDIA drivers and CUDA 12.6.3
+- Docker with NVIDIA container runtime
+- k3s (lightweight Kubernetes)
+- AI Operator for managing ML workloads
+- Pre-configured NVIDIA device plugin for Kubernetes
 
-This project uses `mkosi` to create a bootable disk image for a Debian-based system with CUDA and NVIDIA drivers.
+#### Prerequisites
+- Exoscale CLI (`exo`) installed and configured
+- `mkosi` installed on your system
+- `qemu-utils` for image conversion
+- Access to Exoscale account and API credentials
 
-## Project Structure
-* `HOWTO.md`: Instructions for setting up and using the project.
-* `iommu.sh`: Script to list IOMMU groups and devices.
-* `mkosi.conf.d/mkosi.conf`: Configuration file for mkosi.
-* `mkosi.extra/`: Additional files to be included in the image.
-* `mkosi.pkgmngr/`: Package manager configuration files.
-* `mkosi.prepare.chroot`: Script to run in the chroot environment.
-* `mkosi.skeleton/`: Skeleton directory structure for the image.
-* `README.md`: This file.
+#### Usage
 
-## Project Description and Purpose
-The purpose of this project is to provide a streamlined way to create a bootable disk image for a Debian-based system with CUDA and NVIDIA drivers. This allows users to effectively leverage GPU resources for AI model training and other GPU-intensive tasks.
+Building the Template
 
-## Prerequisites and Installation Steps
-1. Install mkosi:
-    ```sh
-    sudo apt install mkosi
-2. Install Dependencies
-    ```sh
-    mkosi dependencies | xargs -d '\n' sudo apt install -y
-3. Generate SSH Key
-    ```sh 
-    mkosi genkey
-4. Build and Boot the Image:
-    ```sh
-    mkosi boot
+1. Initialize the build environment:
+```BASH
+make init
+```
 
-## Usage Instructions
-1. Verify IOMMU Groups: Run the `iommu.sh` script to list IOMMU groups and devices:
-    ```sh
-    ./iommu.sh
-2. Prepare Chroot Environment: The `mkosi.prepare.chroot` script will install necessary Python packages:
-    ```sh
-    ./mkosi.prepare.chroot
-3. Check NVIDIA and CUDA Repositories: Ensure the CUDA and NVIDIA repository lists are correctly placed in the image:
-* `mkosi.skeleton/etc/apt/sources.list.d/cuda-debian12-x86_64.list`
-* `mkosi.skeleton/etc/apt/sources.list.d/nvidia.list`
-* `mkosi.pkgmngr/etc/apt/sources.list.d/cuda-debian12-x86_64.list`
-* `mkosi.pkgmngr/etc/apt/sources.list.d/nvidia.list`
-4. Run the Image: Boot the generated image and verify all configurations are correct.
+2. Build the image:
+```BASH
+make build
+```
+
+3. Convert the raw image to qcow2
+```BASH
+make convert
+```
+
+4. Create a storage bucket and upload the image:
+```BASH
+make create_bucket
+make upload_permissions
+make upload
+```
+
+5. Register the template
+```BASH
+make register
+```
+
+There is also the possibility to do all steps at once:
+```BASH
+make os_template
+```
+
+#### Using the Template
+
+1. Create a VM using the template:
+```BASH
+exo compute instance create \
+  --instance-type gpu2.small \
+  --template <template-id> \
+  --zone at-vie-1 \
+  --disk-size 100 \
+  --ssh-key <your-ssh-key> \
+  ai
+```
+
+2. The VM comes pre-configured with:
+
+- k3s Kubernetes cluster
+- NVIDIA device plugin
+- AI operator for managing ML workloads
+- Docker with NVIDIA runtime
+- k9s
+
+### Key Components
+
+- `mkosi.conf`: Main configuration for building the Debian image
+- `mkosi.postinst.chroot`: Post-installation script that installs NVIDIA drivers, CUDA, Docker, and k3s
+- `manifests`: Example Kubernetes manifests for GPU workloads
+- `Dockerfile`: Base container image for GPU workloads
+- `Makefile`: Automation for building and deploying the template
+
+#### Directory structure
+```
+.
+├── build.sh           # Build script wrapper
+├── convert.sh         # Image conversion script
+├── Dockerfile         # GPU-enabled container base image
+├── manifests/         # Kubernetes manifests
+├── mkosi.conf        # Main mkosi configuration
+├── mkosi.extra/      # Additional files for the image
+└── mkosi.postinst.chroot  # Post-installation configuration
+```
+
+### Development
+
+To modify the image:
+
+1. Edit mkosi.conf for base system configuration
+2. Modify mkosi.postinst.chroot for software installation
+3. Update mkosi.extra for additional files
+4. Re-build the image via: `make os_template`
+
+### Troubleshooting
+
+1. Verify NVIDIA drivers:
+
+```BASH
+nvidia-smi
+```
+
+2. Check container runtime:
+```BASH
+docker run --rm --runtime=nvidia --gpus all ubuntu nvidia-smi
+```
+
+3. Verify k3s status:
+```BASH
+systemctl status k3s
+```
 
 ## Contributing Guidelines
 We welcome contributions from the community. Please follow these guidelines when contributing to the project:
