@@ -32,7 +32,10 @@ register:
 
 os_template: build convert upload upload_permissions register
 
-init:
+prereq:
+	@if [ ! -f $$HOME/.local/bin/mkosi ]; then echo ; echo "Use 'pipx install git+https://github.com/systemd/mkosi.git@v25.3' to install it."; exit 1; fi
+
+init: prereq
 	mkosi genkey
 
 # These rules do not correspond to a specific file
