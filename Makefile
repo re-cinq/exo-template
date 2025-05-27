@@ -1,5 +1,6 @@
 ZONE:=at-vie-1
 ORG:=re-cinq
+SHA1   := $(shell git rev-parse --short HEAD)
 
 SHELL=/bin/env bash
 
@@ -10,10 +11,11 @@ boot:
 	mkosi --tools-tree=default --force boot
 
 convert:
-	qemu-img convert -f raw -O qcow2 image.raw image.qcow2
+	qemu-img convert -f raw -O qcow2 image.raw exoscale-lab-ai-$(SHA1).qcow2
+	ln -s exoscale-lab-ai-$(SHA1).qcow2 image.qcow2
 
 clean:
-	mkosi clean && rm image.qcow2
+	mkosi clean && rm *.qcow2
 
 hash:
 	md5sum image.qcow2
