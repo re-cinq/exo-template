@@ -3,19 +3,22 @@ ORG:=re-cinq
 SHA1   := $(shell git rev-parse --short HEAD)
 
 SHELL=/bin/env bash
+MKOSI=./mkosi/bin/mkosi
 
 build:
-	mkosi --tools-tree=default --force build
+	@echo "Building requires root. Type your password or CTRL-C to stop."
+	sudo $(MKOSI) --tools-tree=default --force build
 
 boot:
-	mkosi --tools-tree=default --force boot
+	$(MKOSI) --tools-tree=default --force boot
 
 convert:
 	qemu-img convert -f raw -O qcow2 image.raw exoscale-lab-ai-$(SHA1).qcow2
 	ln -s exoscale-lab-ai-$(SHA1).qcow2 image.qcow2
 
 clean:
-	mkosi clean && rm *.qcow2
+	$(MKOSI) clean
+	-rm *.qcow2
 
 hash:
 	md5sum image.qcow2
@@ -34,11 +37,15 @@ register:
 
 os_template: build convert upload upload_permissions register
 
-prereq:
-	@if [ ! -f $$HOME/.local/bin/mkosi ]; then echo ; echo "Use 'pipx install git+https://github.com/systemd/mkosi.git@v25.3' to install it."; exit 1; fi
+mkosi-install:
+	[ ! -d mkosi ] || \
+	  git clone --depth 1 --branch 'v25.3' https://github.com/systemd/mkosi
+
+prereq: mkosi-install
+	apt install debian-archive-keyring
 
 init: prereq
-	mkosi genkey
+	$(MKOSI) genkey
 
 # These rules do not correspond to a specific file
-.PHONY: build boot convert clean hash create_bucket upload upload_permissions register os_template init
+.PHONY: build boot convert clean hash create_bucket upload upload_permissions register os_template init mkosi-install prereq

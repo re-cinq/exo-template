@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e 
+
 # From http://0pointer.net/blog/mkosi-a-tool-for-generating-os-images.html:
 # mkosi.postinst — If this executable script exists, it is invoked inside the
 # image (inside a systemd-nspawn invocation) and can adjust the image as it
