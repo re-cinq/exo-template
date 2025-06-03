@@ -11,3 +11,4 @@ debian-tools/
 tmp/
 tools/
 containers/
+mkosi/

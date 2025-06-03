@@ -17,8 +17,9 @@ convert:
 	ln -s exoscale-lab-ai-$(SHA1).qcow2 image.qcow2
 
 clean:
-	$(MKOSI) clean
-	-rm *.qcow2
+	sudo rm -f *.deb
+	sudo $(MKOSI) clean
+	rm -f *.qcow2
 
 hash:
 	md5sum image.qcow2
@@ -38,11 +39,11 @@ register:
 os_template: build convert upload upload_permissions register
 
 mkosi-install:
-	[ ! -d mkosi ] || \
+	[ ! -d mkosi ] && \
 	  git clone --depth 1 --branch 'v25.3' https://github.com/systemd/mkosi
 
 prereq: mkosi-install
-	apt install debian-archive-keyring
+	sudo apt install debian-archive-keyring
 
 init: prereq
 	$(MKOSI) genkey

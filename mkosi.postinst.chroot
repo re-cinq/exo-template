@@ -67,6 +67,7 @@ apt install -y cuda-drivers
 # ---------------------------- install CUDA --------------------------
 echo -e "\n\nInstalling Nvidia CUDA...\n"
 
+rm -f cuda-repo-debian12-12-6-local_12.6.3-560.35.05-1_amd64.deb
 wget https://developer.download.nvidia.com/compute/cuda/12.6.3/local_installers/cuda-repo-debian12-12-6-local_12.6.3-560.35.05-1_amd64.deb
 
 dpkg -i cuda-repo-debian12-12-6-local_12.6.3-560.35.05-1_amd64.deb
