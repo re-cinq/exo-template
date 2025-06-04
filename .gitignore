@@ -9,5 +9,6 @@ mkosi.key
 mkosi.crt
 debian-tools/
 tmp/
-
+tools/
 containers/
+mkosi/
