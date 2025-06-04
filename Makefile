@@ -43,7 +43,7 @@ mkosi-install:
 	  git clone --depth 1 --branch 'v25.3' https://github.com/systemd/mkosi
 
 prereq: mkosi-install
-	sudo apt install debian-archive-keyring
+	sudo apt install debian-archive-keyring qemu-utils
 
 init: prereq
 	$(MKOSI) genkey
