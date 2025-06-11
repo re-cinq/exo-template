@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -e 
+
 # From http://0pointer.net/blog/mkosi-a-tool-for-generating-os-images.html:
 # mkosi.postinst — If this executable script exists, it is invoked inside the
 # image (inside a systemd-nspawn invocation) and can adjust the image as it
@@ -65,6 +67,7 @@ apt install -y cuda-drivers
 # ---------------------------- install CUDA --------------------------
 echo -e "\n\nInstalling Nvidia CUDA...\n"
 
+rm -f cuda-repo-debian12-12-6-local_12.6.3-560.35.05-1_amd64.deb
 wget https://developer.download.nvidia.com/compute/cuda/12.6.3/local_installers/cuda-repo-debian12-12-6-local_12.6.3-560.35.05-1_amd64.deb
 
 dpkg -i cuda-repo-debian12-12-6-local_12.6.3-560.35.05-1_amd64.deb
